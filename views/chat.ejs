@@ -60,7 +60,7 @@
       }
 
       #messages > li:nth-child(odd) {
-        background: #c1a6a6;
+        background: #3e3333;
       }
 
       #chat {
@@ -179,6 +179,7 @@
             } else {
               let li = document.querySelector(`li[message_id='${message_id}']`);
               li.children[2].innerHTML = input.value;
+              isUpdate = false;
             }
 
             input.value = "";
