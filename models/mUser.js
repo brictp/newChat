@@ -9,11 +9,13 @@ export class repoUser {
       });
       return result;
     } catch (error) {
-      console.log(error);
+      throw new Error(error.message);
     }
   }
+
   static async updateUser(data) {}
   static async deleteUser() {}
+
   static async searchUserByUsername(username) {
     try {
       let result = await db.execute({

@@ -10,6 +10,7 @@ import { rChat } from "./routes/rChats.js";
 import jwt from "jsonwebtoken";
 import { SECRET_JWT_KEY } from "./config/config.js";
 import { cChat } from "./controllers/cChat.js";
+import { error } from "node:console";
 
 config();
 
@@ -67,7 +68,7 @@ io.on("connection", async (socket) => {
         socket.emit("chat message", content, message_id, username);
       });
     } catch (e) {
-      console.log(e);
+      throw new Error(error.mesesage);
     }
   }
 });

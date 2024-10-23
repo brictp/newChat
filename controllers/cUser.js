@@ -23,7 +23,6 @@ export class cUser {
       const hashedPassword = await bcrypt.hash(password, salt);
 
       username = username.toLowerCase();
-      console.log(username);
 
       const newUser = await repoUser.createUser({
         id,
@@ -59,7 +58,6 @@ export class cUser {
       }
 
       username = username.toLowerCase();
-      console.log(username);
 
       const user = await repoUser.searchUserByUsername(username);
       if (!user) {
@@ -76,7 +74,6 @@ export class cUser {
       if (!isPassword)
         throw new Error({ message: "Usuario o Contraseña incorrecta" });
 
-      console.log(userID, userName);
       const token = jwt.sign(
         { id: userID, username: userName, rol: "user" },
         SECRET_JWT_KEY,

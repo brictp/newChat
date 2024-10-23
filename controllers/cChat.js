@@ -18,8 +18,6 @@ export class cChat {
   static async protected(req, res) {
     const { user } = req.session;
 
-    console.log(user);
-
     if (user.rol !== "admin")
       return res.status(401).send(
         `<h1>No tienes accesso a esa pagina, solo los usuarios con rol de admin pueden acceder</h1>
