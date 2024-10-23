@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panae</title>
+
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      :root {
+        color-scheme: light dark;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+          sans-serif;
+        display: grid;
+        place-content: center;
+        height: 100vh;
+        padding: 36px 36px 100px 36px;
+        grid-template-rows: 1fr;
+      }
+
+      #messages {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow-y: scroll;
+        height: 100%;
+        scroll-behavior: smooth;
+        padding-bottom: 48px;
+      }
+
+      /* Ponemos un color de fondo y redondeamos las esquinas del thumb */
+      #messages::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+      }
+
+      /* Cambiamos el fondo y agregamos una sombra cuando esté en hover */
+      #messages::-webkit-scrollbar-thumb:hover {
+        background: #b3b3b3;
+        box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Cambiamos el fondo cuando esté en active */
+      #messages::-webkit-scrollbar-thumb:active {
+        background-color: #999999;
+      }
+
+      #messages > li {
+        padding: 0.5rem 1rem;
+      }
+
+      #messages > li:nth-child(odd) {
+        background: #c1a6a6;
+      }
+
+      #chat {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        overflow: hidden;
+        width: 350px;
+        height: 100%;
+        position: relative;
+      }
+
+      #form {
+        bottom: 0;
+        display: flex;
+        height: 48px;
+        left: 0;
+        padding: 4px;
+        position: absolute;
+        right: 0;
+      }
+
+      #input {
+        border-radius: 9999px;
+        border: 1px solid #eee;
+        flex: 1;
+        margin: 4px;
+        padding: 0 8px;
+      }
+
+      #input:focus {
+        outline: 0;
+      }
+
+      button {
+        background: #09f;
+        color: #fff;
+        border: 0;
+        margin: 4px;
+        border-radius: 4px;
+      }
+
+      button:hover {
+        background: #0cf;
+      }
+
+      a {
+        text-decoration: none;
+        color: white;
+      }
+
+      li > p {
+        height: auto;
+        word-wrap: break-word;
+      }
+
+      li > div {
+        display: inline;
+      }
+    </style>
+
+    <script type="module">
+      import { io } from "https://cdn.socket.io/4.7.5/socket.io.esm.min.js";
+
+      let isUpdate = false;
+      let message_id = "";
+      const username = document.getElementById("user_name").innerHTML;
+
+      const socket = io({
+        auth: {
+          username: username,
+          serverOffset: 0,
+        },
+      });
+
+      const $ = (el) => document.getElementById(el);
+
+      const form = $("form");
+      const input = $("input");
+      const messages = $("messages");
+      const message = document.querySelectorAll(".message");
+
+      socket.on("chat message", (msg, serverOffset, username) => {
+        const item = `<li class="message" message_id='${serverOffset}'>
+          <small>${username}</small>
+          <div id="edit-container">
+            <button class="edit_message">✏️</button>
+            <button class="delete_message">🗑️</button>
+          </div>
+            <p>${msg}</p>
+          </li>`;
+
+        messages.insertAdjacentHTML("beforeend", item);
+        socket.auth.serverOffset = serverOffset;
+        // scroll to bottom of messages
+        messages.scrollTop = messages.scrollHeight;
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const content = input.value;
+
+        if (input.value) {
+          if (isUpdate) {
+            const res = await fetch("/updateMessage", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ message_id, content }),
+            });
+
+            if (!res.ok) {
+              const error = await res.json();
+              alert(error.message);
+            } else {
+              let li = document.querySelector(`li[message_id='${message_id}']`);
+              li.children[2].innerHTML = input.value;
+            }
+
+            input.value = "";
+          } else {
+            socket.emit("chat message", input.value);
+            input.value = "";
+          }
+        }
+      });
+
+      document.addEventListener("click", async (e) => {
+        if (e.target.matches(".edit_message")) {
+          const confir = confirm("Estas seguro que quieres editar el mensaje");
+          if (confir) {
+            const li = e.target.parentElement.parentElement;
+
+            input.value = li.children[2].innerHTML;
+            message_id = li.getAttribute("message_id");
+            isUpdate = true;
+          }
+        }
+
+        if (e.target.matches(".delete_message")) {
+          const confir = confirm(
+            "Estas seguro que quieres eliminar el mensaje"
+          );
+
+          const li = e.target.parentElement.parentElement;
+          if (confir) {
+            message_id = li.getAttribute("message_id");
+
+            const res = await fetch("deletemessage", {
+              method: "DELETE",
+              headers: {
+                "Content-type": "application/json",
+              },
+              body: JSON.stringify({ message_id }),
+            });
+
+            if (!res.ok) {
+              let error = await res.json();
+              alert(error.message);
+            } else {
+              alert("Mensaje eliminado");
+              messages.removeChild(li);
+            }
+          }
+        }
+      });
+    </script>
+  </head>
+
+  <body>
+    <section>
+      <button id="inicio"><a href="/">Inicio</a></button>
+      <span id="user_name"><%= username%></span>
+    </section>
+    <section id="chat">
+      <ul id="messages"></ul>
+      <div id="form-conta">
+        <form id="form">
+          <input
+            type="text"
+            name="message"
+            id="input"
+            placeholder="Type a message"
+            autocomplete="off"
+          />
+          <button type="submit">Enviar</button>
+        </form>
+      </div>
+    </section>
+  </body>
+</html>
