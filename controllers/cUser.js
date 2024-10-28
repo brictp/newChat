@@ -11,12 +11,20 @@ const salt = parseInt(SALT_ROUNDS);
 export class cUser {
   static async create(req, res) {
     let { username, password } = req.body;
+
     try {
       const result = validateUsername(req.body);
 
       if (!result.success) {
         // 422 Unprocessable Entity
         return res.status(400).json(result.error);
+      }
+
+      username = username.toLowerCase();
+      const userExists = await repoUser.searchUserByUsername(username);
+
+      if (userExists.rows.length !== 0) {
+        return res.status(400).json({ message: "Usuario ya existe" });
       }
 
       const id = crypto.randomUUID();
@@ -50,6 +58,7 @@ export class cUser {
 
   static async login(req, res) {
     let { username, password } = req.body;
+
     try {
       const result = validateUsername(req.body);
 
@@ -60,7 +69,8 @@ export class cUser {
       username = username.toLowerCase();
 
       const user = await repoUser.searchUserByUsername(username);
-      if (!user) {
+
+      if (user.rows.length === 0) {
         return res
           .status(400)
           .json({ message: "Usuario o contraseña incorrecta" });
@@ -72,7 +82,9 @@ export class cUser {
 
       const isPassword = await bcrypt.compare(password, userPass);
       if (!isPassword)
-        throw new Error({ message: "Usuario o Contraseña incorrecta" });
+        return res
+          .status(400)
+          .json({ message: "Usuario o Contraseña incorrecta" });
 
       const token = jwt.sign(
         { id: userID, username: userName, rol: "user" },

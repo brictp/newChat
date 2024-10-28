@@ -179,9 +179,9 @@
             } else {
               let li = document.querySelector(`li[message_id='${message_id}']`);
               li.children[2].innerHTML = input.value;
-              isUpdate = false;
             }
 
+            isUpdate = false;
             input.value = "";
           } else {
             socket.emit("chat message", input.value);

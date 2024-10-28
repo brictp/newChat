@@ -172,7 +172,7 @@
                 loginSpan.style.color = "red";
                 return;
               }
-              loginSpan.innerText = `Login fallido`;
+              loginSpan.innerText = `Login fallido ${errData.message}`;
               loginSpan.style.color = "red";
             } else {
               loginSpan.innerText = "Login exitoso. Enviando...";
@@ -222,7 +222,7 @@
                 registerSpan.style.color = "red";
                 return;
               }
-              registerSpan.innerText = `Registro fallido`;
+              registerSpan.innerText = `Registro fallido ${errData.message}`;
               registerSpan.style.color = "red";
             } else {
               registerSpan.innerText = "Registro exitoso. Enviando...";
