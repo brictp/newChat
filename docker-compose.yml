@@ -1,0 +1,13 @@
+services:
+  app:
+    container_name: newChat
+    build: .
+    expose:
+      - 3000
+    environment:
+      # App
+      SALT_ROUNDS: 10
+      SECRET_JWT_KEY: 2de380edc6eac3c58162d5bc0128d41ed56238b8a69845d4129dbcedacd11bafd8ff38841e48e2df4d33d6f530ac8e965b383bc8013270c32f06a8c950cad71d
+      # DB
+      URL: libsql://mychatdb-brictp.turso.io
+      TOKEN: eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MjY4NTExNjQsImlkIjoiNzNkNWVjNzctNGMxOS00ZjU1LWEyMmEtMTY3OTgwN2M2M2U2In0.GsNAY7zY6AwxZfVjs2YyJg8cAG8vfKXMqVTgDnPjUuaEuOTxyBySFj8BRSEL4MFTmqXmxN36nxH1sPpUNTtcDQ
