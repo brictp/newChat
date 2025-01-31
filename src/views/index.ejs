@@ -81,13 +81,14 @@
       <% if (typeof username !== "undefined") { %>
       <div class="form-container">
         <h2>Hola <%= username %>!</h2>
-        <p>Estas en el panel de administracion</p>
+        <p>Estas en el panel de administracion.</p>
         <a href="/chat">
           <button>Chat</button>
         </a>
         <a href="/protected">
           <button id="protected">Contenido protegido</button>
         </a>
+        <button id="change-rol">Cambiar Rol</button>
         <button id="close-session">Cerrar sesion</button>
       </div>
 
@@ -146,6 +147,8 @@
       const registerSpan = $("#register-form span");
 
       const logoutButton = $("#close-session");
+
+      const changeRolButton = $("#change-rol");
 
       loginForm?.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -252,6 +255,30 @@
             window.location.href = "/";
           }
         });
+      });
+
+      changeRolButton?.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        console.log("object");
+        async function changeRol() {
+          try {
+            const res = await fetch("/rol", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+
+            if (!res.ok) {
+              alert("Error al cambiar el rol");
+              return;
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        }
+        changeRol();
       });
     </script>
   </body>

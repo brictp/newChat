@@ -14,3 +14,5 @@ rChat.delete("/deletemessage", cChat.deleteMessage);
 rChat.post("/register", cUser.create);
 rChat.post("/login", cUser.login);
 rChat.post("/logout", cUser.logout);
+
+rChat.post("/rol", cChat.changeRol);

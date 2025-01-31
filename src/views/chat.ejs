@@ -94,16 +94,26 @@
         outline: 0;
       }
 
-      button {
+      button,
+      #span {
         background: #09f;
         color: #fff;
         border: 0;
         margin: 4px;
         border-radius: 4px;
       }
+      #span {
+        display: block;
+        margin: 0;
+        padding: 5px;
+        margin-bottom: 5px;
+        width: 55px;
+      }
 
-      button:hover {
+      button,
+      #span:hover {
         background: #0cf;
+        cursor: pointer;
       }
 
       a {
@@ -234,7 +244,7 @@
 
   <body>
     <section>
-      <button id="inicio"><a href="/">Inicio</a></button>
+      <a id="span" href="/">Volver</a>
       <span id="user_name"><%= username%></span>
     </section>
     <section id="chat">

@@ -1,42 +1,32 @@
-import express, { Router } from "express";
+import express from "express";
 import logger from "morgan";
-import { config } from "dotenv";
-
 import { Server } from "socket.io";
 import { createServer } from "node:http";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
+
 import { repoUser } from "./models/mUser.js";
 import { rChat } from "./routes/rChats.js";
-import jwt from "jsonwebtoken";
-import { SECRET_JWT_KEY } from "./config/config.js";
 import { cChat } from "./controllers/cChat.js";
-import { error } from "node:console";
-
-config();
+import { PORT } from "./config/config.js";
+import { verifyUser } from "./middleware/verify.js";
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
 
-const PORT = process.env.PORT ?? 3000;
-
 app.use(express.json());
 app.use(logger("dev"));
 app.use(cookieParser());
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-app.use((req, res, next) => {
-  const token = req.cookies.access_token;
-  req.session = { user: null };
-
-  try {
-    const data = jwt.verify(token, SECRET_JWT_KEY);
-    req.session.user = data;
-  } catch {}
-
-  next(); // -> Seguir al siguiente middleware
-});
+app.use(verifyUser);
 
 io.on("connection", async (socket) => {
   const user = socket.handshake.auth.username;
@@ -67,7 +57,7 @@ io.on("connection", async (socket) => {
         message_id = message_id.toString();
         socket.emit("chat message", content, message_id, username);
       });
-    } catch (e) {
+    } catch (error) {
       throw new Error(error.mesesage);
     }
   }

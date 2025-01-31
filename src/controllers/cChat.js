@@ -1,4 +1,6 @@
+import jwt from "jsonwebtoken";
 import { repositoryChat } from "../models/mChat.js";
+import { SECRET_JWT_KEY } from "../config/config.js";
 
 export class cChat {
   static async main(req, res) {
@@ -18,14 +20,9 @@ export class cChat {
   static async protected(req, res) {
     const { user } = req.session;
 
-    if (user.rol !== "admin")
-      return res.status(401).send(
-        `<h1>No tienes accesso a esa pagina, solo los usuarios con rol de admin pueden acceder</h1>
-          <a href='/'>Regresar</a>
-          `
-      );
+    if (user.rol !== "admin") res.render("protected", user);
 
-    res.render("protected", user);
+    res.render("admin", user);
   }
 
   static async saveMessage(msg, user_id) {
@@ -53,18 +50,45 @@ export class cChat {
 
     try {
       let message = await repositoryChat.searchMessageById(message_id);
-      if (user.id !== message.rows[0].user_id) {
+
+      if (user.id !== message.rows[0].user_id || user.rol !== "admin") {
         return res
           .status(401)
           .json({ message: "No tienes acceso para Editar este mensaje" });
       }
 
-      let ress = await repositoryChat.updateMessage(message_id, content);
+      await repositoryChat.updateMessage(message_id, content);
 
       res.json({ message: "mensaje actualizado" });
     } catch (error) {
-      console.log(error);
+      throw new Error(error.message);
     }
+  }
+
+  static async changeRol(req, res) {
+    let { access_token } = req.cookies;
+
+    if (!access_token) {
+      res.status(401).json({ message: "Error no authorized " });
+      return;
+    }
+
+    let data = jwt.verify(access_token, SECRET_JWT_KEY);
+
+    data.rol === "user" ? (data.rol = "admin") : (data.rol = "user");
+
+    const newToken = jwt.sign(data, SECRET_JWT_KEY);
+
+    res
+      .cookie("access_token", newToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 10080,
+      })
+      .json({ message: "rol changed" });
+
+    return;
   }
 
   static async deleteMessage(req, res) {
@@ -75,7 +99,7 @@ export class cChat {
       let message = await repositoryChat.searchMessageById(message_id);
 
       if (user.id === message.rows[0].user_id || user.rol === "admin") {
-        let result = await repositoryChat.deleteMessage(message_id);
+        await repositoryChat.deleteMessage(message_id);
         return res.json({ message: "Mensaje eliminado" });
       }
 
