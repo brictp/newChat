@@ -105,181 +105,104 @@
           <button type="submit">Login</button>
           <span>&nbsp;</span>
         </form>
+        <span>No tienes una cuenta aún?</span>
+        <a href="/register">Registrate</a>
       </div>
-
-      <div class="form-container">
-        <form id="register-form">
-          <h2>Register</h2>
-          <label for="register-username">Username</label>
-          <input type="text" id="register-username" name="username" required />
-
-          <label for="register-password">Password</label>
-          <input
-            type="password"
-            id="register-password"
-            name="password"
-            required
-          />
-
-          <label for="register-confirm-password">Confirm Password</label>
-          <input
-            type="password"
-            id="register-confirm-password"
-            name="confirm-password"
-            required
-          />
-
-          <button type="submit">Register</button>
-          <span>&nbsp;</span>
-        </form>
-      </div>
-
       <% } %>
     </div>
+  </body>
 
-    <script>
-      const $ = (el) => document.querySelector(el);
+  <script>
+    const $ = (el) => document.querySelector(el);
 
-      const loginForm = $("#login-form");
-      const loginSpan = $("#login-form span");
+    const loginForm = $("#login-form");
+    const loginSpan = $("#login-form span");
 
-      const registerForm = $("#register-form");
-      const registerSpan = $("#register-form span");
+    const logoutButton = $("#close-session");
 
-      const logoutButton = $("#close-session");
+    const changeRolButton = $("#change-rol");
 
-      const changeRolButton = $("#change-rol");
+    loginForm?.addEventListener("submit", (e) => {
+      e.preventDefault();
 
-      loginForm?.addEventListener("submit", (e) => {
-        e.preventDefault();
+      const username = $("#login-username").value;
+      const password = $("#login-password").value;
 
-        const username = $("#login-username").value;
-        const password = $("#login-password").value;
+      async function loginUser(username, password) {
+        try {
+          const res = await fetch("/api/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username, password }),
+          });
+          if (!res.ok) {
+            const errData = await res.json();
+            if (errData.name === "ZodError") {
+              let errMessage = errData.issues[0].message;
+              let path = errData.issues[0].path;
 
-        async function loginUser(username, password) {
-          try {
-            const res = await fetch("/login", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ username, password }),
-            });
-            if (!res.ok) {
-              const errData = await res.json();
-              if (errData.name === "ZodError") {
-                let errMessage = errData.issues[0].message;
-                let path = errData.issues[0].path;
-
-                loginSpan.innerText = `Login fallido, ${path} ${errMessage}`;
-                loginSpan.style.color = "red";
-                return;
-              }
-              loginSpan.innerText = `Login fallido ${errData.message}`;
+              loginSpan.innerText = `Login fallido, ${path} ${errMessage}`;
               loginSpan.style.color = "red";
-            } else {
-              loginSpan.innerText = "Login exitoso. Enviando...";
-              loginSpan.style.color = "green";
-
-              setTimeout(() => {
-                window.location.reload();
-              }, 2000);
-            }
-          } catch (err) {
-            throw new Error(err.message);
-          }
-        }
-
-        loginUser(username, password);
-      });
-
-      registerForm?.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const username = $("#register-username").value;
-        const password = $("#register-password").value;
-        const confirmPassword = $("#register-confirm-password").value;
-
-        if (password !== confirmPassword) {
-          alert("Las contraseñas no coinciden");
-          return;
-        }
-
-        async function registerUser(username, password) {
-          try {
-            const res = await fetch("/register", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ username, password }),
-            });
-
-            if (!res.ok) {
-              const errData = await res.json();
-
-              if (errData.name === "ZodError") {
-                let errMessage = errData.issues[0].message;
-                let path = errData.issues[0].path;
-
-                registerSpan.innerText = `Registro fallido, ${path} ${errMessage}`;
-                registerSpan.style.color = "red";
-                return;
-              }
-              registerSpan.innerText = `Registro fallido ${errData.message}`;
-              registerSpan.style.color = "red";
-            } else {
-              registerSpan.innerText = "Registro exitoso. Enviando...";
-              registerSpan.style.color = "green";
-
-              setTimeout(() => {
-                window.location.reload();
-              }, 2000);
-            }
-          } catch (err) {
-            console.log(err, "error");
-          }
-        }
-
-        registerUser(username, password);
-      });
-
-      logoutButton?.addEventListener("click", (e) => {
-        e.preventDefault();
-        fetch("/logout", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }).then((res) => {
-          if (res.ok) {
-            window.location.href = "/";
-          }
-        });
-      });
-
-      changeRolButton?.addEventListener("click", (e) => {
-        e.preventDefault();
-
-        console.log("object");
-        async function changeRol() {
-          try {
-            const res = await fetch("/rol", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            });
-
-            if (!res.ok) {
-              alert("Error al cambiar el rol");
               return;
             }
-          } catch (error) {
-            console.log(error);
+            loginSpan.innerText = `Login fallido ${errData.message}`;
+            loginSpan.style.color = "red";
+          } else {
+            loginSpan.innerText = "Login exitoso. Enviando...";
+            loginSpan.style.color = "green";
+
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
           }
+        } catch (err) {
+          throw new Error(err.message);
         }
-        changeRol();
+      }
+
+      loginUser(username, password);
+    });
+
+    logoutButton?.addEventListener("click", (e) => {
+      e.preventDefault();
+      fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then((res) => {
+        if (res.ok) {
+          window.location.href = "/";
+        }
       });
-    </script>
-  </body>
+    });
+
+    changeRolButton?.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      console.log("object");
+      async function changeRol() {
+        try {
+          const res = await fetch("/rol", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!res.ok) {
+            alert("Error al cambiar el rol");
+            return;
+          }
+
+          alert("rol cambiado exitosamente");
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      changeRol();
+    });
+  </script>
 </html>

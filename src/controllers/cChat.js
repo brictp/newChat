@@ -9,6 +9,17 @@ export class cChat {
     res.render("index", user);
   }
 
+  static async registerPage(req, res) {
+    const { user } = req.session;
+
+    if (user) {
+      res.render("index", user);
+      return;
+    }
+
+    res.render("register");
+  }
+
   static async chat(req, res) {
     const { user } = req.session;
 
@@ -20,7 +31,10 @@ export class cChat {
   static async protected(req, res) {
     const { user } = req.session;
 
-    if (user.rol !== "admin") res.render("protected", user);
+    if (user.rol !== "admin") {
+      res.render("protected", user);
+      return;
+    }
 
     res.render("admin", user);
   }
