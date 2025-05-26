@@ -1,2 +1,3 @@
 # mychat
-# newChat
+
+Chat a tiempo real con autenticacion de usuarios
